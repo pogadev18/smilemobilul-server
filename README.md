@@ -27,9 +27,8 @@ This Node.js application provides the backend service for Smilemobilul, a platfo
 
         PORT=8080
         DATABASE_URL=your_database_connection_string
-    
-
-    
+        JWT_SECRET=your-secret-value
+        JWT_EXPIRES_IN=time-value
 
 4.  Runn the application
     `pnpm run dev`
@@ -70,6 +69,7 @@ process.on('SIGINT', () => {
   });
 });
 ```
+
 - SIGINT (Signal Interrupt) is typically sent when a user presses Ctrl+C in the terminal where the Node.js application is running.
 - When the SIGINT signal is received, the application logs that it has received this signal.
 - It then attempts to close the server gracefully by calling server.close().
@@ -84,11 +84,13 @@ process.on('SIGTERM', () => {
   });
 });
 ```
+
 - SIGTERM (Signal Terminate) is sent by system utilities or other applications to indicate that the process should terminate.
 - It is a polite request to the process to terminate its execution. This is the signal commonly used in server environments like when stopping a Docker container or when an operating system shuts down.
 - Similar to SIGINT, upon receiving SIGTERM, the application logs the receipt of this signal and proceeds to gracefully shut down the HTTP server
 
 #### Importance
+
 Implementing graceful shutdown:
 
 - Ensures that ongoing requests are not abruptly terminated, providing a better user experience and data integrity.
