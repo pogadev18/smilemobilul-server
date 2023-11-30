@@ -6,6 +6,13 @@ export const authenticateToken = (
   res: Response,
   next: NextFunction
 ) => {
+
+  // TODO: switch to cookies
+  // const token = req.cookies['access_token'];
+  // if (token === null || token === undefined) {
+  //   return res.sendStatus(401);
+  // }
+  
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 

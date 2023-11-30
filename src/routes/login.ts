@@ -50,6 +50,13 @@ router.post(
           }
         );
 
+        // TODO: switch to cookies
+        // res.cookie('access_token', token, {
+        //   httpOnly: true,
+        //   secure: process.env.NODE_ENV === 'production',
+        //   sameSite: 'strict',
+        //   maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
+        // });
         res.json({ token, username: user.username, role: user.role });
       } else {
         res.status(401).json({ error: 'Invalid credentials' });
