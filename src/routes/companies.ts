@@ -9,13 +9,6 @@ import { asyncMiddleware } from '../middleware/asyncMiddleware';
 
 const router = express.Router();
 
-router.get(
-  '/test-error',
-  asyncMiddleware(async (req, res) => {
-    throw new Error('Test error');
-  })
-);
-
 router.post(
   '/',
   asyncMiddleware(async (req, res, next) => {

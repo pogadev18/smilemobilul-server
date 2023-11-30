@@ -19,8 +19,6 @@ export const asyncMiddleware =
       // if there's an error in the routes that's not handled, it will be caught here
       let errorMessage = 'Something went wrong';
 
-      console.log('handleApiError called');
-
       // Checking for ZodError for validation errors
       if (error instanceof ZodError) {
         errorMessage = 'Validation failed';
