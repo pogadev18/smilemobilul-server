@@ -6,12 +6,14 @@ import { companySchema } from '../models/companies';
 
 import pool from '../db';
 import { asyncMiddleware } from '../middleware/asyncMiddleware';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
 router.post(
   '/',
-  asyncMiddleware(async (req, res, next) => {
+  authenticateToken,
+  asyncMiddleware(async (req, res) => {
     companySchema.parse(req.body);
     const { company_name } = req.body as Company;
 
@@ -23,9 +25,11 @@ router.post(
     res.status(201).json(newCompany.rows[0]);
   })
 );
+
 // TODO: add pagination
 router.get(
   '/',
+  authenticateToken,
   asyncMiddleware(async (req, res) => {
     const allCompanies: QueryResult<Company> = await pool.query(
       'SELECT * FROM companies'
@@ -35,6 +39,7 @@ router.get(
 );
 router.get(
   '/:id',
+  authenticateToken,
   asyncMiddleware(async (req, res) => {
     const { id } = req.params;
     const company: QueryResult<Company> = await pool.query(
@@ -51,6 +56,7 @@ router.get(
 );
 router.patch(
   '/:id',
+  authenticateToken,
   asyncMiddleware(async (req, res) => {
     companySchema.parse(req.body);
     const { id } = req.params;
@@ -70,6 +76,7 @@ router.patch(
 );
 router.delete(
   '/:id',
+  authenticateToken,
   asyncMiddleware(async (req, res) => {
     const { id } = req.params;
     const deleteOp: QueryResult<Company> = await pool.query(

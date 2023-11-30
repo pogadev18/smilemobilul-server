@@ -6,7 +6,10 @@ import morgan from 'morgan';
 
 dotenv.config(); // load env vars
 
+// routes
 import companiesRouter from './routes/companies';
+import loginRouter from './routes/login';
+import signupRouter from './routes/signup';
 
 const app = express();
 const port = process.env.PORT;
@@ -22,6 +25,8 @@ app.use(morgan('combined')); // Logging HTTP requests
 app.use(express.json());
 
 app.use('/companies', companiesRouter);
+app.use('/signup', signupRouter);
+app.use('/login', loginRouter);
 
 // Route not found (404)
 app.use((req, res, next) => {
