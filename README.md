@@ -20,19 +20,17 @@ This Node.js application provides the backend service for Smilemobilul, a platfo
     git clone https://github.com/pogadev18/transactions-journal-server.git
     ```
 
-    <br/>
-
 2.  Install NPM packages
     `pnpm install`
-    <br/>
+<br/>
+
 3.  Create a `.env` file in the root of the projectand add the following environment variables:
 
-        ```
         PORT=8080
         DATABASE_URL=your_database_connection_string
-        ``````
+    
 
-    <br/>
+    
 
 4.  Runn the application
     `pnpm run dev`
@@ -73,3 +71,29 @@ process.on('SIGINT', () => {
   });
 });
 ```
+- SIGINT (Signal Interrupt) is typically sent when a user presses Ctrl+C in the terminal where the Node.js application is running.
+- When the SIGINT signal is received, the application logs that it has received this signal.
+- It then attempts to close the server gracefully by calling server.close().
+- The server.close() method stops the server from accepting new connections and keeps existing connections open until they are handled.
+- Once the server is successfully closed, a callback function logs that the HTTP server is closed.
+
+```
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
+});
+```
+- SIGTERM (Signal Terminate) is sent by system utilities or other applications to indicate that the process should terminate.
+- It is a polite request to the process to terminate its execution. This is the signal commonly used in server environments like when stopping a Docker container or when an operating system shuts down.
+- Similar to SIGINT, upon receiving SIGTERM, the application logs the receipt of this signal and proceeds to gracefully shut down the HTTP server
+
+#### Importance
+Implementing graceful shutdown:
+
+- Ensures that ongoing requests are not abruptly terminated, providing a better user experience and data integrity.
+- Allows the application to release resources, such as database connections or file handles, correctly.
+- Helps in scenarios like deployment of new versions or server maintenance.
+
+In simple terms, this code makes sure that when you tell your server to stop, it finishes serving any ongoing requests and then shuts down gently, without causing any disruptions or data loss.
