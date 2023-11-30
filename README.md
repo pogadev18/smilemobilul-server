@@ -22,7 +22,6 @@ This Node.js application provides the backend service for Smilemobilul, a platfo
 
 2.  Install NPM packages
     `pnpm install`
-<br/>
 
 3.  Create a `.env` file in the root of the projectand add the following environment variables:
 
