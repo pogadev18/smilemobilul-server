@@ -25,7 +25,6 @@ app.use(morgan('combined')); // Logging HTTP requests
 app.use(express.json());
 
 app.use('/companies', companiesRouter);
-app.use('/signup', signupRouter);
 app.use('/login', loginRouter);
 
 // Route not found (404)
