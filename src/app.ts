@@ -4,11 +4,14 @@ import helmet from 'helmet';
 import cors from 'cors';
 import morgan from 'morgan';
 
+import { swaggerDocs } from './lib/swagger';
+
 dotenv.config(); // load env vars
 
 // routes
 import companiesRouter from './routes/companies';
 import loginRouter from './routes/login';
+import signupRouter from './routes/signup';
 import campaignsRouter from './routes/campaigns';
 
 const app = express();
@@ -26,7 +29,10 @@ app.use(express.json());
 
 app.use('/companies', companiesRouter);
 app.use('/campaigns', campaignsRouter);
+app.use('/signup', signupRouter);
 app.use('/login', loginRouter);
+
+swaggerDocs(app, port);
 
 // Route not found (404)
 app.use((req, res, next) => {
