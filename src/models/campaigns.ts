@@ -33,3 +33,5 @@ export const campaignSchema = z.object({
       'Registration process end date must be in YYYY-MM-DD format'
     ),
 });
+
+export const partialCampaignSchema = campaignSchema.partial();

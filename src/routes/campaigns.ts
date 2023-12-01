@@ -2,7 +2,7 @@ import express from 'express';
 import type { QueryResult } from 'pg';
 
 import type { Campaign } from '../models/campaigns';
-import { campaignSchema } from '../models/campaigns';
+import { campaignSchema, partialCampaignSchema } from '../models/campaigns';
 
 import pool from '../db';
 import { asyncMiddleware } from '../middleware/asyncMiddleware';
@@ -130,30 +130,39 @@ router.get(
     res.status(200).json(campaign.rows[0]);
   })
 );
+
 router.patch(
   '/:id',
   authenticateToken,
   asyncMiddleware(async (req, res) => {
-    campaignSchema.parse(req.body);
-    const { id: campaignId } = req.params;
-    const {
-      company_id,
-      start_date,
-      end_date,
-      registration_process_start_date,
-      registration_process_end_date,
-    } = req.body as Campaign;
+    partialCampaignSchema.parse(req.body);
 
+    const campaignId = req.params.id;
+    const updateFields = req.body as Partial<Campaign>;
+
+    // Construct the SET part of the SQL query dynamically
+    const setClauses = [];
+    const values = [];
+    let paramIndex = 1;
+
+    for (const [key, value] of Object.entries(updateFields)) {
+      setClauses.push(`${key} = $${paramIndex}`);
+      values.push(value);
+      paramIndex++;
+    }
+
+    if (setClauses.length === 0) {
+      return res.status(400).json({ error: 'No fields provided for update' });
+    }
+
+    const setClause = setClauses.join(', ');
+    const query = `UPDATE campaigns SET ${setClause} WHERE campaign_id = $${paramIndex} RETURNING *`;
+    values.push(campaignId);
+
+    // Execute the query
     const updatedCampaign: QueryResult<Campaign> = await pool.query(
-      'UPDATE campaigns SET company_id = $1, start_date = $2, end_date = $3, registration_process_start_date = $4, registration_process_end_date = $5 WHERE campaign_id = $6 RETURNING *',
-      [
-        company_id,
-        start_date,
-        end_date,
-        registration_process_start_date,
-        registration_process_end_date,
-        campaignId,
-      ]
+      query,
+      values
     );
 
     if (updatedCampaign.rows.length === 0) {
@@ -163,6 +172,7 @@ router.patch(
     res.status(200).json(updatedCampaign.rows[0]);
   })
 );
+
 router.delete(
   '/:id',
   authenticateToken,
