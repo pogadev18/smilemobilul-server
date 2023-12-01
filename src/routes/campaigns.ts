@@ -42,6 +42,25 @@ router.post(
         .status(404)
         .json({ error: `Company with ID ${company_id} not found` });
     }
+    
+    // Check for existing campaign for the same company with the same details
+    const existingCampaign: QueryResult = await pool.query(
+      'SELECT 1 FROM campaigns WHERE company_id = $1 AND ((start_date, end_date) OVERLAPS ($2::DATE, $3::DATE) OR (registration_process_start_date, registration_process_end_date) OVERLAPS ($4::DATE, $5::DATE))',
+      [
+        company_id,
+        start_date,
+        end_date,
+        registration_process_start_date,
+        registration_process_end_date,
+      ]
+    );
+
+    if (existingCampaign.rowCount !== null && existingCampaign.rowCount > 0) {
+      return res.status(409).json({
+        error:
+          'A similar campaign for this company already exists within the specified date range',
+      });
+    }
 
     // "f_" stands for "formatted"
     const formattedDates = formatDatesToRomanianTime({
