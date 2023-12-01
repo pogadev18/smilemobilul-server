@@ -1,5 +1,3 @@
-// utils/dateUtils.ts
-
 import { zonedTimeToUtc, utcToZonedTime, format } from 'date-fns-tz';
 
 type DateStrings = {
