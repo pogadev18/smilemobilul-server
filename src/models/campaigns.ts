@@ -13,7 +13,7 @@ export const campaignSchema = z.object({
   campaign_name: z
     .string()
     .min(3, 'Campaign name must be at least 3 characters'),
-  company_id: z.number().int(),
+  company_id: z.number().int().positive('Company ID must be a positive number'),
   start_date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format'),

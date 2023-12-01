@@ -12,11 +12,37 @@ import { formatDatesToRomanianTime } from '../lib/dateUtils';
 
 const router = express.Router();
 
+// TODO: combine these 2 queries into one to avoid 2 round trips to the database
+async function checkIfCompanyExists(companyId: number): Promise<boolean> {
+  const companyExists: QueryResult = await pool.query(
+    'SELECT 1 FROM Companies WHERE company_id = $1',
+    [companyId]
+  );
+
+  return companyExists.rowCount !== 0;
+}
+
+async function checkForOverlappingCampaigns(
+  campaignDetails: Campaign
+): Promise<boolean> {
+  const existingCampaign: QueryResult = await pool.query(
+    'SELECT 1 FROM campaigns WHERE company_id = $1 AND ((start_date, end_date) OVERLAPS ($2::DATE, $3::DATE) OR (registration_process_start_date, registration_process_end_date) OVERLAPS ($4::DATE, $5::DATE))',
+    [
+      campaignDetails.company_id,
+      campaignDetails.start_date,
+      campaignDetails.end_date,
+      campaignDetails.registration_process_start_date,
+      campaignDetails.registration_process_end_date,
+    ]
+  );
+
+  return existingCampaign.rowCount !== null && existingCampaign.rowCount > 0;
+}
+
 /*
  expected dates format: YYYY-MM-DD
  i.e: 2021-01-01
 */
-
 router.post(
   '/',
   authenticateToken,
@@ -31,38 +57,30 @@ router.post(
       registration_process_end_date,
     } = req.body as Campaign;
 
-    // Check if the company_id exists in the database
-    const companyExists: QueryResult = await pool.query(
-      'SELECT 1 FROM Companies WHERE company_id = $1',
-      [company_id]
-    );
+    const companyExists = await checkIfCompanyExists(company_id);
 
-    if (companyExists.rowCount === 0) {
+    if (!companyExists) {
       return res
         .status(404)
         .json({ error: `Company with ID ${company_id} not found` });
     }
-    
-    // Check for existing campaign for the same company with the same details
-    const existingCampaign: QueryResult = await pool.query(
-      'SELECT 1 FROM campaigns WHERE company_id = $1 AND ((start_date, end_date) OVERLAPS ($2::DATE, $3::DATE) OR (registration_process_start_date, registration_process_end_date) OVERLAPS ($4::DATE, $5::DATE))',
-      [
-        company_id,
-        start_date,
-        end_date,
-        registration_process_start_date,
-        registration_process_end_date,
-      ]
-    );
 
-    if (existingCampaign.rowCount !== null && existingCampaign.rowCount > 0) {
+    const hasOverlappingCampaigns = await checkForOverlappingCampaigns({
+      campaign_name,
+      company_id,
+      start_date,
+      end_date,
+      registration_process_start_date,
+      registration_process_end_date,
+    });
+
+    if (hasOverlappingCampaigns) {
       return res.status(409).json({
         error:
           'A similar campaign for this company already exists within the specified date range',
       });
     }
 
-    // "f_" stands for "formatted"
     const formattedDates = formatDatesToRomanianTime({
       start_date,
       end_date,
