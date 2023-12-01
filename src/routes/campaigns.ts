@@ -8,6 +8,8 @@ import pool from '../db';
 import { asyncMiddleware } from '../middleware/asyncMiddleware';
 import { authenticateToken } from '../middleware/authMiddleware';
 
+import { formatDatesToRomanianTime } from '../lib/dateUtils';
+
 const router = express.Router();
 
 /*
@@ -21,6 +23,7 @@ router.post(
   asyncMiddleware(async (req, res) => {
     campaignSchema.parse(req.body);
     const {
+      campaign_name,
       company_id,
       start_date,
       end_date,
@@ -28,14 +31,35 @@ router.post(
       registration_process_end_date,
     } = req.body as Campaign;
 
+    // Check if the company_id exists in the database
+    const companyExists: QueryResult = await pool.query(
+      'SELECT 1 FROM Companies WHERE company_id = $1',
+      [company_id]
+    );
+
+    if (companyExists.rowCount === 0) {
+      return res
+        .status(404)
+        .json({ error: `Company with ID ${company_id} not found` });
+    }
+
+    // "f_" stands for "formatted"
+    const formattedDates = formatDatesToRomanianTime({
+      start_date,
+      end_date,
+      registration_process_start_date,
+      registration_process_end_date,
+    });
+
     const newCampaign: QueryResult<Campaign> = await pool.query(
-      'INSERT INTO campaigns (company_id, start_date, end_date, registration_process_start_date, registration_process_end_date) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      'INSERT INTO campaigns (campaign_name, company_id, start_date, end_date, registration_process_start_date, registration_process_end_date) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [
+        campaign_name,
         company_id,
-        start_date,
-        end_date,
-        registration_process_start_date,
-        registration_process_end_date,
+        formattedDates.start_date,
+        formattedDates.end_date,
+        formattedDates.registration_process_start_date,
+        formattedDates.registration_process_end_date,
       ]
     );
 
