@@ -9,7 +9,7 @@ dotenv.config(); // load env vars
 // routes
 import companiesRouter from './routes/companies';
 import loginRouter from './routes/login';
-import signupRouter from './routes/signup';
+import campaignsRouter from './routes/campaigns';
 
 const app = express();
 const port = process.env.PORT;
@@ -25,6 +25,7 @@ app.use(morgan('combined')); // Logging HTTP requests
 app.use(express.json());
 
 app.use('/companies', companiesRouter);
+app.use('/campaigns', campaignsRouter);
 app.use('/login', loginRouter);
 
 // Route not found (404)
