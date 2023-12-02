@@ -29,7 +29,7 @@ app.use(express.json());
 
 app.use('/companies', companiesRouter);
 app.use('/campaigns', campaignsRouter);
-app.use('/signup', signupRouter);
+app.use('/signup', signupRouter); // TODO: remove this route. It won't be used in production. Just for development purposes.
 app.use('/login', loginRouter);
 
 swaggerDocs(app, port);
