@@ -138,11 +138,11 @@ router.patch(
     partialCampaignSchema.parse(req.body);
 
     const campaignId = req.params.id;
-    const updateFields = req.body as Partial<Campaign>;
+    const updateFields: Record<keyof Campaign, string> = req.body;
 
     // Construct the SET part of the SQL query dynamically
-    const setClauses = [];
-    const values = [];
+    const setClauses: string[] = [];
+    const values: string[] = [];
     let paramIndex = 1;
 
     for (const [key, value] of Object.entries(updateFields)) {
@@ -150,6 +150,8 @@ router.patch(
       values.push(value);
       paramIndex++;
     }
+
+    console.log(setClauses, values, paramIndex);
 
     if (setClauses.length === 0) {
       return res.status(400).json({ error: 'No fields provided for update' });

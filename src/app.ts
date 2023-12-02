@@ -13,6 +13,7 @@ import companiesRouter from './routes/companies';
 import loginRouter from './routes/login';
 import signupRouter from './routes/signup';
 import campaignsRouter from './routes/campaigns';
+import seriveDaysRouter from './routes/serviceDays';
 
 const app = express();
 const port = process.env.PORT;
@@ -29,8 +30,9 @@ app.use(express.json());
 
 app.use('/companies', companiesRouter);
 app.use('/campaigns', campaignsRouter);
-app.use('/signup', signupRouter); // TODO: remove this route. It won't be used in production. Just for development purposes.
+app.use('/service-days', seriveDaysRouter);
 app.use('/login', loginRouter);
+app.use('/signup', signupRouter); // TODO: remove this route. It won't be used in production. Just for development purposes.
 
 swaggerDocs(app, port);
 
