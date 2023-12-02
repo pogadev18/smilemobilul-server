@@ -8,7 +8,6 @@ import pool from '../db';
 import { asyncMiddleware } from '../middleware/asyncMiddleware';
 import { authenticateToken } from '../middleware/authMiddleware';
 
-import { formatDatesToRomanianTime } from '../lib/dateUtils';
 import type { Campaign } from '../models/campaigns';
 
 const router = express.Router();
@@ -18,7 +17,7 @@ router.post(
   authenticateToken,
   asyncMiddleware(async (req, res) => {
     serviceDaySchema.parse(req.body);
-    const { campaign_id, dates } = req.body as ServiceDay;
+    const { campaign_id, dates: serviceDates } = req.body as ServiceDay;
 
     // Retrieve the campaign's date range
     const campaignQueryResult: QueryResult<Campaign> = await pool.query(
@@ -44,7 +43,7 @@ router.post(
     const registrationEndDate = new Date(registrationEnd);
 
     // Validate each service day
-    for (const date of dates) {
+    for (const date of serviceDates) {
       const serviceDate = new Date(date);
 
       // Check if the service date is the same as the campaign start date
@@ -55,6 +54,8 @@ router.post(
       }
 
       // Check if the service date is within the registration process date range
+      // todo: check from the client side when sending dates, there's an edge case for the last day (it sees it as not in the range).
+      // todo: double check date formatting on the client side and on the server as well.
       if (
         serviceDate >= registrationStartDate &&
         serviceDate <= registrationEndDate
@@ -72,7 +73,31 @@ router.post(
       }
     }
 
-    res.status(201).json({ message: 'Service days created successfully.' });
+    // Prepare the values for bulk insertion
+    const serviceDaysValues = serviceDates
+      .map((date) => `(${campaign_id}, '${date}')`)
+      .join(',');
+
+    /* 
+      Concern??: Constructing SQL queries like this by concatenating strings can make your application vulnerable
+      to SQL injection attacks. It’s essential to use parameterized queries or a library that safely
+      handles SQL query construction.
+      */
+
+    // clause to gracefully handle attempts to insert duplicate service days
+    // needs PostgreSQL 9.5 or later
+    const insertQuery = `
+        INSERT INTO ServiceDays (campaign_id, date)
+        VALUES ${serviceDaysValues}
+        ON CONFLICT (campaign_id, date) DO NOTHING
+        RETURNING *;
+    `;
+
+    const newServiceDays: QueryResult<ServiceDay> = await pool.query(
+      insertQuery
+    );
+
+    res.status(201).json(newServiceDays.rows);
   })
 );
 
