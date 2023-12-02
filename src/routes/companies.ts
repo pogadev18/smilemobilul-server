@@ -10,6 +10,7 @@ import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
+
 router.post(
   '/',
   authenticateToken,
@@ -32,7 +33,7 @@ router.get(
   authenticateToken,
   asyncMiddleware(async (req, res) => {
     const allCompanies: QueryResult<Company> = await pool.query(
-      'SELECT * FROM companies'
+      'SELECT company_id, company_name FROM companies'
     );
     res.status(200).json(allCompanies.rows);
   })
@@ -43,7 +44,7 @@ router.get(
   asyncMiddleware(async (req, res) => {
     const { id } = req.params;
     const company: QueryResult<Company> = await pool.query(
-      'SELECT * FROM companies WHERE company_id = $1',
+      'SELECT compnay_id, company_name FROM companies WHERE company_id = $1',
       [id]
     );
 
