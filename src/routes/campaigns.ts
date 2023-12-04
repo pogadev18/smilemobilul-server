@@ -12,6 +12,26 @@ import { formatDatesToRomanianTime } from '../lib/dateUtils';
 
 const router = express.Router();
 
+/*
+ Campaigns info (with assumptions):
+ - each campaing will have a start date & end date
+ - each campaign will have a registration process start date & end date
+
+ Assumption: The registration process start date is the same as the campaign start date. This is when employees of a company
+ can start registering for the campaign. (the first 3 forms an employee has to fill from the QR code link)
+
+ After the registration process ends, the service days come into place. These are the days when Smilemobilul team can offer
+ dental services to the employees of a company.
+
+ Example:
+ - campaign start date: 2023-12-01
+ - campaign end date: 2023-12-16
+ - registration process start date: 2023-12-01
+ - registration process end date: 2023-12-08 (7 days window for employees to register)
+ - service days period: 2023-12-09, 2023-12-10, 2023-12-11, 2023-12-12, 2023-12-13, 2023-12-14, 2023-12-15, 2023-12-16
+ (last 8 days of the campaign)
+*/
+
 // TODO: combine these 2 queries into one to avoid 2 round trips to the database
 async function checkIfCompanyExists(companyId: number): Promise<boolean> {
   const companyExists: QueryResult = await pool.query(
@@ -138,11 +158,11 @@ router.patch(
     partialCampaignSchema.parse(req.body);
 
     const campaignId = req.params.id;
-    const updateFields = req.body as Partial<Campaign>;
+    const updateFields: Record<keyof Campaign, string> = req.body;
 
     // Construct the SET part of the SQL query dynamically
-    const setClauses = [];
-    const values = [];
+    const setClauses: string[] = [];
+    const values: string[] = [];
     let paramIndex = 1;
 
     for (const [key, value] of Object.entries(updateFields)) {
