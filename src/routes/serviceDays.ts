@@ -21,12 +21,12 @@ import type { Campaign } from '../models/campaigns';
 const router = express.Router();
 
 async function checkIfCampaignExists(campaignId: number): Promise<boolean> {
-  const companyExists: QueryResult = await pool.query(
+  const campaignExists: QueryResult = await pool.query(
     'SELECT * FROM campaigns WHERE campaign_id = $1',
     [campaignId]
   );
 
-  return companyExists.rowCount !== 0;
+  return campaignExists.rowCount !== 0;
 }
 
 type ValidationResult = {
